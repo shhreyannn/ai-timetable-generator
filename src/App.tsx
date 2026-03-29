@@ -48,14 +48,19 @@ class ErrorBoundary extends Component<
   }
 }
 
+import { useStore } from './store/useStore';
+
 function App() {
+  const { isRunning, generationMetrics } = useStore();
+  const hasStarted = isRunning || generationMetrics.length > 0;
+
   return (
     <ErrorBoundary>
       <Suspense fallback={null}>
         <ThreeBackground />
       </Suspense>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto w-full max-w-[1920px] px-4 py-6 sm:px-6 lg:px-8 xl:px-12 2xl:px-24">
         <Header />
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -63,7 +68,7 @@ function App() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="space-y-6 lg:col-span-3"
+            className="space-y-6 lg:col-span-3 xl:col-span-3"
           >
             <InputPanel />
             <ControlsPanel />
@@ -73,17 +78,31 @@ function App() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="space-y-6 lg:col-span-9"
+            className="space-y-6 lg:col-span-9 xl:col-span-9"
           >
-            <ProgressIndicator />
-            <FitnessChart />
-            <TimetableGrid />
-            <ResultsPanel />
-            <ExportButton />
+            {hasStarted ? (
+              <>
+                <ProgressIndicator />
+                <FitnessChart />
+                <TimetableGrid />
+                <ResultsPanel />
+                <ExportButton />
+              </>
+            ) : (
+              <div className="flex h-full min-h-[600px] flex-col items-center justify-center rounded-card border-2 border-dashed border-primary-200 bg-white/50 p-12 text-center shadow-card backdrop-blur-sm">
+                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary-100/50 text-5xl">
+                  🚀
+                </div>
+                <h3 className="font-heading text-2xl font-bold text-primary">
+                  Ready to optimize your schedules
+                </h3>
+                <p className="mt-3 max-w-lg text-primary-400">
+                  Load an existing problem dataset or enter constraints manually, then select your algorithm parameters and click <span className="font-semibold text-primary">Run Algorithm</span>. The progress and final optimized timetables will appear here.
+                </p>
+              </div>
+            )}
           </motion.div>
         </div>
-
-
       </div>
     </ErrorBoundary>
   );
