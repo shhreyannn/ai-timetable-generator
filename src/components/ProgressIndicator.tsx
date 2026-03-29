@@ -19,14 +19,14 @@ export default function ProgressIndicator() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-card bg-[#131314]/60 backdrop-blur-xl border border-white/10 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+      className="rounded-card bg-white p-6 shadow-card"
     >
-      <h2 className="mb-4 font-heading text-lg font-semibold text-white">
+      <h2 className="mb-4 font-heading text-lg font-semibold text-primary">
         {isRunning ? '🔄 Running...' : '✅ Complete'}
       </h2>
 
       {/* Progress bar */}
-      <div className="mb-4 overflow-hidden rounded-full bg-[#1a191b] border border-white/5">
+      <div className="mb-4 overflow-hidden rounded-full bg-primary-50">
         <motion.div
           className="h-3 rounded-full bg-gradient-to-r from-accent to-accent-light"
           initial={{ width: 0 }}
@@ -40,17 +40,17 @@ export default function ProgressIndicator() {
         <StatCard
           label="Generation"
           value={`${isRunning ? currentGeneration : config.generations} / ${config.generations}`}
-          color="text-white"
+          color="text-primary"
         />
         <StatCard
           label="Best Fitness"
           value={currentBestFitness.toFixed(0)}
-          color="text-[#d575ff]"
+          color="text-accent"
         />
         <StatCard
           label="Conflicts"
           value={latestConflicts.toString()}
-          color={latestConflicts > 0 ? 'text-[#ff716c]' : 'text-[#d575ff]'}
+          color={latestConflicts > 0 ? 'text-warning' : 'text-accent'}
         />
       </div>
     </motion.div>
@@ -59,8 +59,8 @@ export default function ProgressIndicator() {
 
 function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="rounded-xl bg-[#1a191b]/80 border border-white/5 p-3 text-center">
-      <p className="text-xs font-medium text-[#adaaab]">{label}</p>
+    <div className="rounded-xl bg-primary-50/50 p-3 text-center">
+      <p className="text-xs font-medium text-primary-400">{label}</p>
       <p className={`mt-1 font-heading text-xl font-bold ${color}`}>{value}</p>
     </div>
   );

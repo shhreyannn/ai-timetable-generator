@@ -10,9 +10,9 @@ export default function InputPanel() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.5 }}
-      className="rounded-card bg-[#131314]/60 backdrop-blur-xl border border-white/10 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-shadow hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]-hover"
+      className="rounded-card bg-white p-6 shadow-card transition-shadow hover:shadow-card-hover"
     >
-      <h2 className="mb-4 font-heading text-lg font-semibold text-white">
+      <h2 className="mb-4 font-heading text-lg font-semibold text-primary">
         📋 Input Data
       </h2>
 
@@ -40,9 +40,9 @@ export default function InputPanel() {
               icon="👨‍🏫"
               count={inputData.teachers.length}
               items={inputData.teachers.map(t => (
-                <div key={t.id} className="flex items-center justify-between rounded-lg bg-[#1a191b]/80 border border-white/5 px-3 py-2">
+                <div key={t.id} className="flex items-center justify-between rounded-lg bg-primary-50/50 px-3 py-2">
                   <span className="text-sm font-medium text-primary-700">{t.name}</span>
-                  <span className="text-xs text-[#adaaab]">
+                  <span className="text-xs text-primary-400">
                     {t.subjects.length} subject{t.subjects.length > 1 ? 's' : ''}
                   </span>
                 </div>
@@ -55,10 +55,10 @@ export default function InputPanel() {
               icon="📚"
               count={inputData.subjects.length}
               items={inputData.subjects.map(s => (
-                <div key={s.id} className="flex items-center gap-2 rounded-lg bg-[#1a191b]/80 border border-white/5 px-3 py-2">
+                <div key={s.id} className="flex items-center gap-2 rounded-lg bg-primary-50/50 px-3 py-2">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: s.color }} />
                   <span className="text-sm font-medium text-primary-700">{s.name}</span>
-                  <span className="ml-auto text-xs text-[#adaaab]">{s.hoursPerWeek}h/wk</span>
+                  <span className="ml-auto text-xs text-primary-400">{s.hoursPerWeek}h/wk</span>
                 </div>
               ))}
             />
@@ -69,9 +69,9 @@ export default function InputPanel() {
               icon="🏫"
               count={inputData.rooms.length}
               items={inputData.rooms.map(r => (
-                <div key={r.id} className="flex items-center justify-between rounded-lg bg-[#1a191b]/80 border border-white/5 px-3 py-2">
+                <div key={r.id} className="flex items-center justify-between rounded-lg bg-primary-50/50 px-3 py-2">
                   <span className="text-sm font-medium text-primary-700">{r.name}</span>
-                  <span className="text-xs text-[#adaaab]">Cap: {r.capacity}</span>
+                  <span className="text-xs text-primary-400">Cap: {r.capacity}</span>
                 </div>
               ))}
             />
@@ -82,15 +82,15 @@ export default function InputPanel() {
               icon="🎓"
               count={inputData.classes.length}
               items={inputData.classes.map(c => (
-                <div key={c.id} className="flex items-center justify-between rounded-lg bg-[#1a191b]/80 border border-white/5 px-3 py-2">
+                <div key={c.id} className="flex items-center justify-between rounded-lg bg-primary-50/50 px-3 py-2">
                   <span className="text-sm font-medium text-primary-700">{c.name}</span>
-                  <span className="text-xs text-[#adaaab]">{c.subjects.length} subjects</span>
+                  <span className="text-xs text-primary-400">{c.subjects.length} subjects</span>
                 </div>
               ))}
             />
 
             {/* Timeslots summary */}
-            <div className="rounded-xl border border-white/5 bg-[#1a191b] border border-white/5/30 p-3">
+            <div className="rounded-xl border border-primary-100 bg-primary-50/30 p-3">
               <div className="flex items-center gap-2">
                 <span>🕐</span>
                 <span className="text-sm font-semibold text-primary-700">Timeslots</span>
@@ -98,7 +98,7 @@ export default function InputPanel() {
                   {inputData.timeslots.length} slots
                 </span>
               </div>
-              <p className="mt-1 text-xs text-[#adaaab]">
+              <p className="mt-1 text-xs text-primary-400">
                 {[...new Set(inputData.timeslots.map(t => t.day))].length} days ×{' '}
                 {inputData.timeslots.length / [...new Set(inputData.timeslots.map(t => t.day))].length} periods/day
               </p>
@@ -136,7 +136,7 @@ function DataSection({
   items: React.ReactNode[];
 }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-[#1a191b] border border-white/5/30 p-3">
+    <div className="rounded-xl border border-primary-100 bg-primary-50/30 p-3">
       <div className="mb-2 flex items-center gap-2">
         <span>{icon}</span>
         <span className="text-sm font-semibold text-primary-700">{title}</span>

@@ -26,9 +26,9 @@ export default function FitnessChart() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1, duration: 0.5 }}
-      className="rounded-card bg-[#131314]/60 backdrop-blur-xl border border-white/10 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-shadow hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]-hover"
+      className="rounded-card bg-white p-6 shadow-card transition-shadow hover:shadow-card-hover"
     >
-      <h2 className="mb-4 font-heading text-lg font-semibold text-white">
+      <h2 className="mb-4 font-heading text-lg font-semibold text-primary">
         📈 Fitness Evolution
       </h2>
 

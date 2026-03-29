@@ -27,16 +27,16 @@ class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-[#0e0e0f] p-8">
-          <div className="rounded-card bg-[#131314]/60 backdrop-blur-xl border border-white/10 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-            <h2 className="font-heading text-xl font-bold text-[#ff716c]">Something went wrong</h2>
-            <p className="mt-2 font-body text-sm text-[#adaaab]">{this.state.error}</p>
+        <div className="flex min-h-screen items-center justify-center bg-secondary p-8">
+          <div className="rounded-card bg-white p-8 shadow-card">
+            <h2 className="font-heading text-xl font-bold text-warning">Something went wrong</h2>
+            <p className="mt-2 font-body text-sm text-primary-400">{this.state.error}</p>
             <button
               onClick={() => {
                 this.setState({ hasError: false, error: '' });
                 window.location.reload();
               }}
-              className="mt-4 rounded-xl bg-gradient-to-br from-[#8ff5ff] to-[#00eefc] text-[#0e0e0f] font-semibold tracking-wide hover:shadow-[0_0_20px_rgba(143,245,255,0.4)] transition-all px-4 py-2 text-sm text-white"
+              className="mt-4 rounded-xl bg-primary px-4 py-2 text-sm text-white"
             >
               Reload
             </button>
@@ -89,15 +89,15 @@ function App() {
                 <ExportButton />
               </>
             ) : (
-              <div className="flex h-full min-h-[600px] flex-col items-center justify-center rounded-card border-2 border-dashed border-white/10 bg-[#131314]/60 backdrop-blur-xl border border-white/10 p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm">
+              <div className="flex h-full min-h-[600px] flex-col items-center justify-center rounded-card border-2 border-dashed border-primary-200 bg-white/50 p-12 text-center shadow-card backdrop-blur-sm">
                 <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary-100/50 text-5xl">
                   🚀
                 </div>
-                <h3 className="font-heading text-2xl font-bold text-white">
+                <h3 className="font-heading text-2xl font-bold text-primary">
                   Ready to optimize your schedules
                 </h3>
-                <p className="mt-3 max-w-lg text-[#adaaab]">
-                  Load an existing problem dataset or enter constraints manually, then select your algorithm parameters and click <span className="font-semibold text-white">Run Algorithm</span>. The progress and final optimized timetables will appear here.
+                <p className="mt-3 max-w-lg text-primary-400">
+                  Load an existing problem dataset or enter constraints manually, then select your algorithm parameters and click <span className="font-semibold text-primary">Run Algorithm</span>. The progress and final optimized timetables will appear here.
                 </p>
               </div>
             )}
