@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
+import MetricsCharts from './MetricsCharts';
 
 const ALGO_LABELS: Record<string, string> = {
   'standard': 'Standard GA',
@@ -134,6 +135,9 @@ export default function ResultsPanel() {
           </div>
         </motion.div>
       )}
+
+      {/* Fitness and Conflict Evaluation Charts */}
+      {result.generationMetrics && <MetricsCharts metrics={result.generationMetrics} />}
     </motion.div>
   );
 }
