@@ -5,8 +5,14 @@
 </p>
 
 <p align="center">
+  <strong>💻 Algorithm & Core Engine:</strong><br>
+  <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/TypeScript_Engine-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Algorithm-Genetic_Evolution-8b5cf6?style=for-the-badge" alt="Genetic Algorithm" />
+</p>
+<p align="center">
+  <strong>🎨 Dashboard & UI:</strong><br>
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
   <img src="https://img.shields.io/badge/Framer_Motion-black?style=for-the-badge&logo=framer-motion&logoColor=blue" alt="Framer Motion" />
 </p>
@@ -48,15 +54,20 @@ Because standard 1-point and 2-point array crossovers rip individual class sched
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Architecture
 
-- **Frontend Framework:** React 18 + Vite
-- **Typing & Logic:** TypeScript (Strict Mode)
+### Backend / Core Engine (Logic Layer)
+- **Language:** TypeScript (Strict Mode)
+- **Environment:** Node.js processing mapped to browser-workers via asynchronous yielding.
+- **Algorithm State:** Custom Genesis array handling 480-gene crossover mutations.
+- **Data Safety:** Mulberry32 PRNG (Seeded generation for identical reproducible output).
+
+### Frontend / Dashboard (Presentation Layer)
+- **Framework:** React 18 + Vite
 - **Styling:** TailwindCSS 
 - **Animation:** Framer Motion
 - **Data Visualization:** Recharts
 - **State Management:** Zustand
-- **Local Seed Engine:** Mulberry32 PRNG (for perfect dataset reproducibility)
 
 ---
 
