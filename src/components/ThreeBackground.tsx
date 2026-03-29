@@ -49,7 +49,7 @@ function FloatingGrid() {
       {points.map((pt, i) => (
         <mesh key={i} position={pt}>
           <sphereGeometry args={[0.04, 8, 8]} />
-          <meshBasicMaterial color="#4CAF50" transparent opacity={0.3} />
+          <meshBasicMaterial color="#8ff5ff" transparent opacity={0.3} />
         </mesh>
       ))}
       {/* Connections */}
@@ -62,7 +62,7 @@ function FloatingGrid() {
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial color="#1F3A5F" transparent opacity={0.08} />
+        <lineBasicMaterial color="#d575ff" transparent opacity={0.08} />
       </lineSegments>
     </group>
   );
@@ -70,7 +70,7 @@ function FloatingGrid() {
 
 export default function ThreeBackground() {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 opacity-40">
+    <div className="pointer-events-none fixed inset-0 -z-10 opacity-60 mix-blend-screen">
       <Canvas
         camera={{ position: [0, 0, 12], fov: 60 }}
         style={{ width: '100%', height: '100%' }}

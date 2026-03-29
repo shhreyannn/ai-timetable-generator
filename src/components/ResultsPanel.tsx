@@ -25,18 +25,18 @@ export default function ResultsPanel() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="rounded-card bg-white p-6 shadow-card"
+      className="rounded-card bg-[#131314]/60 backdrop-blur-xl border border-white/10 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
     >
-      <h2 className="mb-2 font-heading text-lg font-semibold text-primary">
+      <h2 className="mb-2 font-heading text-lg font-semibold text-white">
         📊 Results & Metrics
       </h2>
 
       {/* Algorithm info badge */}
       <div className="mb-4 flex flex-wrap gap-2">
-        <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-600">
+        <span className="rounded-full bg-[#1a191b] border border-white/5 px-3 py-1 text-xs font-semibold text-primary-600">
           🧬 {ALGO_LABELS[config.algorithmType] ?? config.algorithmType}
         </span>
-        <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-400">
+        <span className="rounded-full bg-[#1a191b] border border-white/5 px-3 py-1 text-xs font-medium text-[#adaaab]">
           {config.seed === 0 ? '🎲 Random seed' : `🌱 Seed: ${config.seed}`}
         </span>
       </div>
@@ -46,39 +46,39 @@ export default function ResultsPanel() {
         <MetricCard
           label="Initial Fitness"
           value={result.initialFitness.toFixed(0)}
-          color="bg-primary-50 text-primary"
+          color="bg-[#1a191b] border border-white/5 text-white"
         />
         <MetricCard
           label="Final Fitness"
           value={result.finalFitness.toFixed(0)}
-          color="bg-accent/10 text-accent-dark"
+          color="bg-[#d575ff]/10 text-[#d575ff]-dark"
           highlight
         />
         <MetricCard
           label="Conflict Reduction"
           value={`${conflictReduction}%`}
-          color={parseFloat(conflictReduction) >= 80 ? 'bg-accent/10 text-accent-dark' : 'bg-warning/10 text-warning'}
+          color={parseFloat(conflictReduction) >= 80 ? 'bg-[#d575ff]/10 text-[#d575ff]-dark' : 'bg-warning/10 text-[#ff716c]'}
           highlight={parseFloat(conflictReduction) >= 80}
         />
         <MetricCard
           label="Execution Time"
           value={`${(result.executionTimeMs / 1000).toFixed(2)}s`}
-          color="bg-primary-50 text-primary-700"
+          color="bg-[#1a191b] border border-white/5 text-primary-700"
         />
       </div>
 
       {/* Detailed breakdown */}
       <div className="mb-4 grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-primary-100 p-3">
-          <p className="text-xs font-medium text-primary-400">Initial Conflicts</p>
-          <p className="mt-1 font-heading text-2xl font-bold text-warning">
+        <div className="rounded-xl border border-white/5 p-3">
+          <p className="text-xs font-medium text-[#adaaab]">Initial Conflicts</p>
+          <p className="mt-1 font-heading text-2xl font-bold text-[#ff716c]">
             {result.initialConflicts}
           </p>
         </div>
-        <div className="rounded-xl border border-primary-100 p-3">
-          <p className="text-xs font-medium text-primary-400">Final Conflicts</p>
+        <div className="rounded-xl border border-white/5 p-3">
+          <p className="text-xs font-medium text-[#adaaab]">Final Conflicts</p>
           <p className={`mt-1 font-heading text-2xl font-bold ${
-            result.finalConflicts === 0 ? 'text-accent' : 'text-warning'
+            result.finalConflicts === 0 ? 'text-[#d575ff]' : 'text-[#ff716c]'
           }`}>
             {result.finalConflicts}
           </p>
@@ -86,10 +86,10 @@ export default function ResultsPanel() {
       </div>
 
       {/* Fitness improvement bar */}
-      <div className="mb-4 rounded-xl bg-primary-50/50 p-4">
+      <div className="mb-4 rounded-xl bg-[#1a191b]/80 border border-white/5 p-4">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-medium text-primary-400">Fitness Improvement</span>
-          <span className="text-xs font-bold text-accent">{fitnessImprovement}%</span>
+          <span className="text-xs font-medium text-[#adaaab]">Fitness Improvement</span>
+          <span className="text-xs font-bold text-[#d575ff]">{fitnessImprovement}%</span>
         </div>
         <div className="overflow-hidden rounded-full bg-primary-100">
           <motion.div
@@ -109,9 +109,9 @@ export default function ResultsPanel() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.4 }}
-          className="rounded-xl border-2 border-dashed border-primary-200 p-4"
+          className="rounded-xl border-2 border-dashed border-white/10 p-4"
         >
-          <h3 className="mb-3 font-heading text-sm font-semibold text-primary">
+          <h3 className="mb-3 font-heading text-sm font-semibold text-white">
             🔀 GA vs Random Scheduler
           </h3>
           <div className="grid grid-cols-3 gap-3">
@@ -122,14 +122,14 @@ export default function ResultsPanel() {
               random={randomResult.conflicts}
               lowerIsBetter
             />
-            <div className="rounded-xl bg-accent/5 p-3 text-center">
-              <p className="text-xs font-medium text-primary-400">GA Advantage</p>
-              <p className="mt-1 font-heading text-lg font-bold text-accent">
+            <div className="rounded-xl bg-[#d575ff]/5 p-3 text-center">
+              <p className="text-xs font-medium text-[#adaaab]">GA Advantage</p>
+              <p className="mt-1 font-heading text-lg font-bold text-[#d575ff]">
                 {randomResult.fitness > 0
                   ? `${((result.finalFitness / randomResult.fitness - 1) * 100).toFixed(0)}%`
                   : '∞'}
               </p>
-              <p className="text-[10px] text-accent-dark">better fitness</p>
+              <p className="text-[10px] text-[#d575ff]-dark">better fitness</p>
             </div>
           </div>
         </motion.div>
@@ -175,14 +175,14 @@ function CompareMetric({
 }) {
   const gaWins = lowerIsBetter ? ga < random : ga > random;
   return (
-    <div className="rounded-xl bg-primary-50/50 p-3 text-center">
-      <p className="text-xs font-medium text-primary-400">{label}</p>
+    <div className="rounded-xl bg-[#1a191b]/80 border border-white/5 p-3 text-center">
+      <p className="text-xs font-medium text-[#adaaab]">{label}</p>
       <div className="mt-1 flex items-center justify-center gap-2">
-        <span className={`font-heading text-sm font-bold ${gaWins ? 'text-accent' : 'text-warning'}`}>
+        <span className={`font-heading text-sm font-bold ${gaWins ? 'text-[#d575ff]' : 'text-[#ff716c]'}`}>
           GA: {ga.toFixed(0)}
         </span>
         <span className="text-xs text-gray-300">vs</span>
-        <span className={`font-heading text-sm font-bold ${!gaWins ? 'text-accent' : 'text-warning'}`}>
+        <span className={`font-heading text-sm font-bold ${!gaWins ? 'text-[#d575ff]' : 'text-[#ff716c]'}`}>
           R: {random.toFixed(0)}
         </span>
       </div>

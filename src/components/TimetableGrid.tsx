@@ -86,11 +86,11 @@ export default function TimetableGrid() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.5 }}
-      className="rounded-card bg-white p-6 shadow-card"
+      className="rounded-card bg-[#131314]/60 backdrop-blur-xl border border-white/10 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
       id="timetable-grid"
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-heading text-lg font-semibold text-primary">
+        <h2 className="font-heading text-lg font-semibold text-white">
           📅 Generated Timetable
         </h2>
 
@@ -99,7 +99,7 @@ export default function TimetableGrid() {
           <select
             value={selectedClassId}
             onChange={(e) => setSelectedClassId(e.target.value)}
-            className="rounded-lg border border-primary-100 bg-primary-50/50 px-3 py-1.5 text-sm font-medium text-primary-700 outline-none focus:border-primary"
+            className="rounded-lg border border-white/5 bg-[#1a191b]/80 border border-white/5 px-3 py-1.5 text-sm font-medium text-primary-700 outline-none focus:border-primary"
           >
             {inputData.classes.map(c => {
               const hasConflict = conflictingClasses.has(c.id);
@@ -116,7 +116,7 @@ export default function TimetableGrid() {
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
               showConflicts
                 ? 'bg-warning text-white shadow-md'
-                : 'bg-warning/10 text-warning hover:bg-warning/20'
+                : 'bg-warning/10 text-[#ff716c] hover:bg-warning/20'
             }`}
           >
             {showConflicts ? '🔴 Conflicts ON' : '⭕ Show Conflicts'}
@@ -129,13 +129,13 @@ export default function TimetableGrid() {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="rounded-tl-lg bg-primary-50 p-2 text-xs font-semibold text-primary-600">
+              <th className="rounded-tl-lg bg-[#1a191b] border border-white/5 p-2 text-xs font-semibold text-primary-600">
                 Day / Period
               </th>
               {periods.map((p) => (
                 <th
                   key={p}
-                  className="bg-primary-50 p-2 text-center text-xs font-semibold text-primary-600 last:rounded-tr-lg"
+                  className="bg-[#1a191b] border border-white/5 p-2 text-center text-xs font-semibold text-primary-600 last:rounded-tr-lg"
                 >
                   {getTimeslotLabel(days[0], p)}
                 </th>
@@ -145,7 +145,7 @@ export default function TimetableGrid() {
           <tbody>
             {days.map((day, dayIdx) => (
               <tr key={day}>
-                <td className="border-t border-primary-50 bg-primary-50/30 p-2 text-xs font-semibold text-primary-700">
+                <td className="border-t border-primary-50 bg-[#1a191b] border border-white/5/30 p-2 text-xs font-semibold text-primary-700">
                   {day}
                 </td>
                 {periods.map((period, pIdx) => {
@@ -193,7 +193,7 @@ export default function TimetableGrid() {
                               >
                                 {subject?.name || gene.subjectId}
                               </p>
-                              <p className="mt-0.5 text-[10px] text-gray-500">
+                              <p className="mt-0.5 text-[10px] text-[#adaaab]">
                                 {teacher?.name || gene.teacherId}
                               </p>
                               <p className="text-[10px] text-gray-400">
@@ -221,7 +221,7 @@ export default function TimetableGrid() {
         {inputData.subjects.map(s => (
           <div key={s.id} className="flex items-center gap-1.5 rounded-full bg-gray-50 px-2 py-1">
             <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-            <span className="text-[10px] font-medium text-gray-600">{s.name}</span>
+            <span className="text-[10px] font-medium text-[#adaaab]">{s.name}</span>
           </div>
         ))}
       </div>

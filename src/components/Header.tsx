@@ -6,13 +6,13 @@ export default function Header() {
       initial={{ opacity: 0, y: -30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="relative overflow-hidden rounded-card bg-gradient-to-r from-primary via-primary-700 to-primary-800 p-8 shadow-card"
+      className="relative overflow-hidden rounded-card bg-gradient-to-r from-[#131314] via-[#1a191b] to-[#0e0e0f] border border-white/5 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
     >
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-accent" />
-        <div className="absolute -bottom-5 -left-5 h-32 w-32 rounded-full bg-secondary" />
-        <div className="absolute right-1/3 top-1/2 h-20 w-20 rounded-full bg-accent-light" />
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#d575ff]" />
+        <div className="absolute -bottom-5 -left-5 h-32 w-32 rounded-full bg-[#0e0e0f]" />
+        <div className="absolute right-1/3 top-1/2 h-20 w-20 rounded-full bg-[#eaaeff]" />
       </div>
 
       <div className="relative z-10">
@@ -20,7 +20,7 @@ export default function Header() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="mb-1 inline-block rounded-full bg-accent/20 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-accent-light"
+          className="mb-1 inline-block rounded-full bg-[#d575ff]/20 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-[#eaaeff]"
         >
           Genetic Algorithm · Constraint Optimization
         </motion.div>
@@ -38,7 +38,7 @@ export default function Header() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="mt-2 max-w-2xl font-body text-sm text-primary-100/80 md:text-base"
+          className="mt-2 max-w-2xl font-body text-sm text-[#adaaab]/80 md:text-base"
         >
           Generate optimized B.Tech CSE academic timetables for 30 sections (A1–O2)
           using evolutionary computation. Configure constraints, run the algorithm,
