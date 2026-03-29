@@ -32,13 +32,13 @@ function createMinimalInput(): InputData {
       { id: 'room2', name: 'Room 102', capacity: 30 },
     ],
     timeslots: [
-      { id: 'mon_p1', day: 'Monday', period: 1, label: '9:00 - 10:00' },
-      { id: 'mon_p2', day: 'Monday', period: 2, label: '10:00 - 11:00' },
-      { id: 'tue_p1', day: 'Tuesday', period: 1, label: '9:00 - 10:00' },
+      { id: 'mon_p1', day: 'Monday', period: 1, label: '9:00 - 10:00', shift: 'morning' },
+      { id: 'mon_p2', day: 'Monday', period: 2, label: '10:00 - 11:00', shift: 'morning' },
+      { id: 'tue_p1', day: 'Tuesday', period: 1, label: '9:00 - 10:00', shift: 'morning' },
     ],
     classes: [
-      { id: 'cls1', name: 'Class A', subjects: ['sub1', 'sub2'] },
-      { id: 'cls2', name: 'Class B', subjects: ['sub1', 'sub2'] },
+      { id: 'cls1', name: 'Class A', subjects: ['sub1', 'sub2'], allowedRooms: [], allowedTimeslots: [] },
+      { id: 'cls2', name: 'Class B', subjects: ['sub1', 'sub2'], allowedRooms: [], allowedTimeslots: [] },
     ],
   };
 }
@@ -120,10 +120,10 @@ describe('Fitness Function', () => {
     const input: InputData = {
       ...createMinimalInput(),
       timeslots: [
-        { id: 'mon_p1', day: 'Monday', period: 1, label: '9:00 - 10:00' },
-        { id: 'mon_p2', day: 'Monday', period: 2, label: '10:00 - 11:00' },
-        { id: 'mon_p3', day: 'Monday', period: 3, label: '11:00 - 12:00' },
-        { id: 'mon_p4', day: 'Monday', period: 4, label: '12:00 - 13:00' },
+        { id: 'mon_p1', day: 'Monday', period: 1, label: '9:00 - 10:00', shift: 'morning' },
+        { id: 'mon_p2', day: 'Monday', period: 2, label: '10:00 - 11:00', shift: 'morning' },
+        { id: 'mon_p3', day: 'Monday', period: 3, label: '11:00 - 12:00', shift: 'morning' },
+        { id: 'mon_p4', day: 'Monday', period: 4, label: '12:00 - 13:00', shift: 'afternoon' },
       ],
     };
 
@@ -167,6 +167,8 @@ describe('Genetic Algorithm End-to-End', () => {
       mutationRate: 0.1,
       tournamentSize: 3,
       crossoverType: 'two-point',
+      algorithmType: 'standard',
+      seed: 0,
     };
 
     const result = runGeneticAlgorithm(config, sampleData);
@@ -185,6 +187,8 @@ describe('Genetic Algorithm End-to-End', () => {
       mutationRate: 0.1,
       tournamentSize: 3,
       crossoverType: 'two-point',
+      algorithmType: 'standard',
+      seed: 0,
     };
 
     const result = runGeneticAlgorithm(config, sampleData);

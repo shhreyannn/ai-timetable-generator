@@ -20,7 +20,7 @@ function FloatingGrid() {
   }, []);
 
   const connections = useMemo(() => {
-    const lines: [number, number, number][] = [];
+    const lines: number[] = [];
     const threshold = 2.0;
     for (let i = 0; i < points.length; i++) {
       for (let j = i + 1; j < points.length; j++) {

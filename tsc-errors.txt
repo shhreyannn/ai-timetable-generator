@@ -1,0 +1,11 @@
+src/utils/__tests__/geneticAlgorithm.test.ts(35,7): error TS2741: Property 'shift' is missing in type '{ id: string; day: string; period: number; label: string; }' but required in type 'Timeslot'.
+src/utils/__tests__/geneticAlgorithm.test.ts(36,7): error TS2741: Property 'shift' is missing in type '{ id: string; day: string; period: number; label: string; }' but required in type 'Timeslot'.
+src/utils/__tests__/geneticAlgorithm.test.ts(37,7): error TS2741: Property 'shift' is missing in type '{ id: string; day: string; period: number; label: string; }' but required in type 'Timeslot'.
+src/utils/__tests__/geneticAlgorithm.test.ts(40,7): error TS2739: Type '{ id: string; name: string; subjects: string[]; }' is missing the following properties from type 'ClassGroup': allowedRooms, allowedTimeslots
+src/utils/__tests__/geneticAlgorithm.test.ts(41,7): error TS2739: Type '{ id: string; name: string; subjects: string[]; }' is missing the following properties from type 'ClassGroup': allowedRooms, allowedTimeslots
+src/utils/__tests__/geneticAlgorithm.test.ts(123,9): error TS2741: Property 'shift' is missing in type '{ id: string; day: string; period: number; label: string; }' but required in type 'Timeslot'.
+src/utils/__tests__/geneticAlgorithm.test.ts(124,9): error TS2741: Property 'shift' is missing in type '{ id: string; day: string; period: number; label: string; }' but required in type 'Timeslot'.
+src/utils/__tests__/geneticAlgorithm.test.ts(125,9): error TS2741: Property 'shift' is missing in type '{ id: string; day: string; period: number; label: string; }' but required in type 'Timeslot'.
+src/utils/__tests__/geneticAlgorithm.test.ts(126,9): error TS2741: Property 'shift' is missing in type '{ id: string; day: string; period: number; label: string; }' but required in type 'Timeslot'.
+src/utils/__tests__/geneticAlgorithm.test.ts(164,11): error TS2739: Type '{ populationSize: number; generations: number; mutationRate: number; tournamentSize: number; crossoverType: "two-point"; }' is missing the following properties from type 'GAConfig': algorithmType, seed
+src/utils/__tests__/geneticAlgorithm.test.ts(182,11): error TS2739: Type '{ populationSize: number; generations: number; mutationRate: number; tournamentSize: number; crossoverType: "two-point"; }' is missing the following properties from type 'GAConfig': algorithmType, seed
