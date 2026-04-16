@@ -27,15 +27,15 @@ This isn't a wrapper around an API—this is a custom, in-browser evolutionary a
 
 ## ✨ Features
 
-- **Real-Time Evolutionary Tracking**: Watch the genetic algorithm learn visually. Interactive charts plot Best Fitness, Average Fitness, and Total Conflicts live as generations pass.
+- **Live Evolutionary Timetable Grid**: Watch the genetic algorithm learn visually. The timetable interface streams down straight from the background web-workers directly updating the grid cells in real-time as generations pass. Interactively track Best Fitness, Average Fitness, and Total Conflicts via dynamic dashboard charts.
 - **Three Core Algorithm Variants**:
   - `Standard GA`: Classic generational replacement with elitism constraints.
   - `Steady-State GA`: Asynchronous real-time offspring validation.
-  - `Adaptive Mutation GA`: Features a highly advanced **Triggered Pulse Mutation** metric preventing "local optima death spirals" by intelligently heating/cooling mutation rates (Simulated Annealing style).
-- **Strict "Class-Boundary" Crossover**: Mathematically designed genetic swapping that perfectly preserves soft-constraints (like schedule gaps) while evolving hard-constraints (teacher overlaps).
-- **Dual-Shift Processing System**: Morning (Section 1) and Afternoon (Section 2) shifts utilizing a shared pool of 15 fully-utilized rooms.
-- **Conflict Highlighting Engine**: An interactive UI to instantly identify precisely down to the *Gene* where schedule gaps, room overlaps, or teacher double-bookings remain.
-- **State-of-the-Art UI/UX**: Built with Framer Motion and TailwindCSS for a natively responsive, premium dashboard feel with zero blocking latency during calculation thanks to asynchronous async-loop yielding.
+  - `Adaptive Mutation GA`: Features a highly advanced **Triggered Pulse Mutation** metric preventing "local optima death spirals" by intelligently heating/cooling mutation rates (plotted directly onto secondary real-time metric axes).
+- **Extremely Fast $O(1)$ Fitness Evaluations**: Deep optimization mapping converts traditional $O(N)$ nested search loops into $O(1)$ Hash Map lookups `Map<string, Conflict[]>`, drastically reducing memory bloat and calculation latency.
+- **Strict "Class-Boundary" Crossover & Swap Mutation**: Mathematically engineered genetic operators that preserve integrity. Recombination only tears between class borders, while the custom **Swap Operator** probabilistically exchanges internal scheduling cells for the exact same class logic without accidentally generating duplicate invalid assignments.
+- **Conflict Highlighting Insight Tooltips**: An interactive hover-tooltip interface indexing `conflictMaps` to instantly identify *precisely why* schedule gaps, room overlaps, or teacher double-bookings remain directly on the rendered cell.
+- **State-of-the-Art UI/UX**: Built with Framer Motion and TailwindCSS for a natively responsive, premium dashboard feel. Complete with zero blocking latency thanks to asynchronous async-loop yielding rendering over 60FPS.
 
 ---
 
@@ -49,8 +49,8 @@ Fitness is evaluated by harshly penalizing broken constraints:
 - ❌ **Hard Constraints (Severe Penalty):** Teacher overlapping, Room Overbooking, and Shift-Timing Violations.
 - ⚠️ **Soft Constraints (Minor Penalty):** Schedule Gaps (empty blocks of time for a class) and Subject Repetitions in a single day.
 
-### Crossover & Pulse Mutation
-Because standard 1-point and 2-point array crossovers rip individual class schedules apart, this engine uses a specialized **Class-Boundary Crossover**. It only swaps perfectly intact class schedules between parents, retaining structural stability. To guarantee >95% success rates, the engine uses **Triggered Pulse Mutation**, a custom mechanic that detects fitness stagnation and temporarily blasts the DNA with high mutation to shock the schedule out of local un-optimizable traps before cooling back down.
+### Crossover, Swap & Pulse Mutation
+Because standard 1-point and 2-point array crossovers rip individual class schedules apart, this engine uses a specialized **Class-Boundary Crossover**. It only swaps perfectly intact class schedules between parents. For tight mutation edge-cases, the engine engages an advanced **Swap Mutator**, directly switching two localized cells belonging to an identical class. To guarantee high success rates escaping local minimas, the engine utilizes **Triggered Pulse Mutation**, a custom mechanic that tracks fitness stagnation and temporarily blasts the DNA with high mutation to shock the schedule into new boundaries before cooling down over generations.
 
 ---
 
@@ -82,7 +82,7 @@ Make sure you have Node JS and NPM installed.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YourUsername/ai-timetable-generator.git
+   git clone https://github.com/shhreyannn/ai-timetable-generator.git
    ```
 
 2. Navigate into the directory:
@@ -116,7 +116,7 @@ Make sure you have Node JS and NPM installed.
 ---
 
 ## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/YourUsername/ai-timetable-generator/issues).
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/shhreyannn/ai-timetable-generator/issues).
 
 ## 📄 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
