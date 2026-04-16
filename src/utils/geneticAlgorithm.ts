@@ -386,7 +386,7 @@ export function runGeneticAlgorithm(
     [pop, fitnesses] = evolve(pop, fitnesses, config, inputData, maps, m);
   }
 
-  return buildResult(pop, fitnesses, metrics, initialFitness, initialConflicts, startTime);
+  return buildResult(pop, fitnesses, metrics, initialFitness, initialConflicts, startTime, config.seed);
 }
 
 // ── Async run (for UI — yields between generations) ───────────────────────────
@@ -429,7 +429,7 @@ export async function runGeneticAlgorithmAsync(
     [pop, fitnesses] = evolve(pop, fitnesses, config, inputData, maps, m);
   }
 
-  return buildResult(pop, fitnesses, metrics, initialFitness, initialConflicts, startTime);
+  return buildResult(pop, fitnesses, metrics, initialFitness, initialConflicts, startTime, config.seed);
 }
 
 // ── Core evolution step (dispatches to algorithm variant) ────────────────────
@@ -565,6 +565,7 @@ function buildResult(
   initialFitness: number,
   initialConflicts: number,
   startTime: number,
+  seedUsed: number,
 ): GAResult {
   const vals = fitnesses.map(f => f.fitness);
   const bestIdx = vals.indexOf(Math.max(...vals));
@@ -579,5 +580,6 @@ function buildResult(
     generationMetrics: metrics,
     executionTimeMs: performance.now() - startTime,
     conflictDetails: fb.conflictDetails,
+    seedUsed,
   };
 }

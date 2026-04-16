@@ -9,7 +9,7 @@ const ALGO_LABELS: Record<string, string> = {
 };
 
 export default function ResultsPanel() {
-  const { result, randomResult, compareWithRandom, config } = useStore();
+  const { result, randomResult, compareWithRandom, config, activeSeed } = useStore();
 
   if (!result) return null;
 
@@ -33,13 +33,25 @@ export default function ResultsPanel() {
       </h2>
 
       {/* Algorithm info badge */}
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-600">
           🧬 {ALGO_LABELS[config.algorithmType] ?? config.algorithmType}
         </span>
-        <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-400">
-          {config.seed === 0 ? '🎲 Random seed' : `🌱 Seed: ${config.seed}`}
-        </span>
+        <div className="flex items-center rounded-full bg-primary-50 px-3 py-1">
+          <span className="text-xs font-medium text-primary-400 mr-2">
+            🌱 Seed: {result.seedUsed || activeSeed}
+          </span>
+          <button
+            onClick={() => {
+               navigator.clipboard.writeText(String(result.seedUsed || activeSeed));
+               alert(`Copied Seed: ${result.seedUsed || activeSeed}`);
+            }}
+            className="text-[10px] bg-primary-100/50 hover:bg-primary-200 text-primary-600 px-2 rounded-md transition-colors"
+            title="Copy Seed"
+          >
+            Copy
+          </button>
+        </div>
       </div>
 
       {/* GA Results */}

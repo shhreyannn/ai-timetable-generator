@@ -83,6 +83,7 @@ export interface GAResult {
   generationMetrics: GenerationMetrics[];
   executionTimeMs: number;
   conflictDetails: ConflictDetail[];
+  seedUsed: number;
 }
 
 export interface RandomResult {

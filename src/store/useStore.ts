@@ -43,6 +43,9 @@ interface TimetableStore {
   onError: (message: string) => void;
   reset: () => void;
 
+  activeSeed: number | null;
+  setActiveSeed: (seed: number) => void;
+
   error: string | null;
 }
 
@@ -54,8 +57,11 @@ export const useStore = create<TimetableStore>((set, get) => ({
     timeslots: [],
     classes: [],
   },
-  setInputData: (data) => set({ inputData: data }),
-  loadPreset: () => set({ inputData: getSampleData() }),
+  setInputData: (data) => set({ inputData: data, selectedClassId: data.classes[0]?.id || '' }),
+  loadPreset: () => {
+    const data = getSampleData();
+    set({ inputData: data, selectedClassId: data.classes[0]?.id || '' });
+  },
 
   config: {
     populationSize: 100,
@@ -64,7 +70,7 @@ export const useStore = create<TimetableStore>((set, get) => ({
     tournamentSize: 5,
     crossoverType: 'two-point',
     algorithmType: 'adaptive-mutation',
-    seed: 42,
+    seed: 3,
   },
   setConfig: (partial) =>
     set((state) => ({ config: { ...state.config, ...partial } })),
@@ -87,6 +93,9 @@ export const useStore = create<TimetableStore>((set, get) => ({
   selectedClassId: '',
   setSelectedClassId: (id) => set({ selectedClassId: id }),
 
+  activeSeed: null,
+  setActiveSeed: (seed) => set({ activeSeed: seed }),
+
   error: null,
 
   startGA: () => {
@@ -101,6 +110,7 @@ export const useStore = create<TimetableStore>((set, get) => ({
       result: null,
       randomResult: null,
       error: null,
+      activeSeed: null,
     });
 
     if (state.compareWithRandom) {
@@ -120,14 +130,14 @@ export const useStore = create<TimetableStore>((set, get) => ({
   },
 
   onComplete: (result) =>
-    set({
+    set((state) => ({
       isRunning: false,
       result,
       currentGeneration: result.generationMetrics.length,
       currentBestFitness: result.finalFitness,
       generationMetrics: result.generationMetrics,
-      selectedClassId: get().inputData.classes[0]?.id || '',
-    }),
+      selectedClassId: state.selectedClassId || get().inputData.classes[0]?.id || '',
+    })),
 
   onError: (message) =>
     set({

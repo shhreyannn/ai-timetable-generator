@@ -30,8 +30,12 @@ export function useGAWorker() {
     cancelledRef.current = { current: false };
     startGA();
 
+    const actualSeed = config.seed === 0 ? Math.floor(Math.random() * 100000) : config.seed;
+    useStore.getState().setActiveSeed(actualSeed);
+    const resolvedConfig = { ...config, seed: actualSeed };
+
     // Run async GA - yields between generations
-    runGeneticAlgorithmAsync(config, inputData, onProgress, cancelledRef.current)
+    runGeneticAlgorithmAsync(resolvedConfig, inputData, onProgress, cancelledRef.current)
       .then((result) => {
         if (!cancelledRef.current.current) {
           onComplete(result);

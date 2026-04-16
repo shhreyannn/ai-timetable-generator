@@ -164,10 +164,14 @@ export default function ControlsPanel() {
               type="number"
               min={0}
               max={9999}
-              value={config.seed}
-              onChange={(e) => setConfig({ seed: Math.max(0, parseInt(e.target.value) || 0) })}
+              value={config.seed === 0 ? '' : config.seed}
+              placeholder="0 (Random)"
+              onChange={(e) => {
+                const val = e.target.value;
+                setConfig({ seed: val === '' ? 0 : Math.max(0, parseInt(val, 10)) });
+              }}
               disabled={isRunning}
-              className="w-full rounded-lg border border-primary-100 bg-primary-50/50 px-3 py-1.5 text-sm font-medium text-primary-700 outline-none focus:border-primary disabled:opacity-50"
+              className="w-full rounded-lg border border-primary-100 bg-primary-50/50 px-3 py-1.5 text-sm font-medium text-primary-700 outline-none focus:border-primary disabled:opacity-50 placeholder:text-primary-300"
             />
             <button
               onClick={() => setConfig({ seed: Math.floor(Math.random() * 9999) + 1 })}
