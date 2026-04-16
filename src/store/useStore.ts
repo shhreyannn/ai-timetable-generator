@@ -6,6 +6,7 @@ import type {
   RandomResult,
   GenerationMetrics,
   Chromosome,
+  ConflictDetail,
 } from '../utils/types';
 import { getSampleData } from '../utils/sampleData';
 import { generateRandomTimetable } from '../utils/randomScheduler';
@@ -22,6 +23,7 @@ interface TimetableStore {
   currentGeneration: number;
   currentBestFitness: number;
   currentBest: Chromosome | null;
+  currentBestConflicts: ConflictDetail[];
   generationMetrics: GenerationMetrics[];
 
   result: GAResult | null;
@@ -36,7 +38,7 @@ interface TimetableStore {
   setSelectedClassId: (id: string) => void;
 
   startGA: () => void;
-  onProgress: (metrics: GenerationMetrics, best: Chromosome) => void;
+  onProgress: (metrics: GenerationMetrics, best: Chromosome, conflicts?: ConflictDetail[]) => void;
   onComplete: (result: GAResult) => void;
   onError: (message: string) => void;
   reset: () => void;
@@ -71,6 +73,7 @@ export const useStore = create<TimetableStore>((set, get) => ({
   currentGeneration: 0,
   currentBestFitness: 0,
   currentBest: null,
+  currentBestConflicts: [],
   generationMetrics: [],
 
   result: null,
@@ -93,6 +96,7 @@ export const useStore = create<TimetableStore>((set, get) => ({
       currentGeneration: 0,
       currentBestFitness: 0,
       currentBest: null,
+      currentBestConflicts: [],
       generationMetrics: [],
       result: null,
       randomResult: null,
@@ -105,11 +109,12 @@ export const useStore = create<TimetableStore>((set, get) => ({
     }
   },
 
-  onProgress: (metrics, best) => {
+  onProgress: (metrics, best, conflicts) => {
     set((state) => ({
       currentGeneration: metrics.generation,
       currentBestFitness: metrics.bestFitness,
       currentBest: best,
+      currentBestConflicts: conflicts || [],
       generationMetrics: [...state.generationMetrics, metrics],
     }));
   },
@@ -136,6 +141,7 @@ export const useStore = create<TimetableStore>((set, get) => ({
       currentGeneration: 0,
       currentBestFitness: 0,
       currentBest: null,
+      currentBestConflicts: [],
       generationMetrics: [],
       result: null,
       randomResult: null,

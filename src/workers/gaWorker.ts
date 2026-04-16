@@ -4,7 +4,7 @@
  */
 
 import { runGeneticAlgorithm } from '../utils/geneticAlgorithm';
-import type { GAWorkerMessage, GAWorkerResponse, GenerationMetrics, Chromosome } from '../utils/types';
+import type { GAWorkerMessage, GAWorkerResponse, GenerationMetrics, Chromosome, ConflictDetail } from '../utils/types';
 
 self.onmessage = (event: MessageEvent<GAWorkerMessage>) => {
   const { config, inputData } = event.data;
@@ -13,11 +13,12 @@ self.onmessage = (event: MessageEvent<GAWorkerMessage>) => {
     const result = runGeneticAlgorithm(
       config,
       inputData,
-      (metrics: GenerationMetrics, currentBest: Chromosome) => {
+      (metrics: GenerationMetrics, currentBest: Chromosome, currentBestConflicts?: ConflictDetail[]) => {
         const progress: GAWorkerResponse = {
           type: 'progress',
           metrics,
           currentBest,
+          currentBestConflicts,
         };
         self.postMessage(progress);
       }

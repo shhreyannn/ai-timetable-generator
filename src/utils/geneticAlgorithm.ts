@@ -6,7 +6,7 @@
  *   - Steady-State GA: replace only the worst individuals each generation
  *   - Adaptive Mutation GA: mutation rate decreases as fitness improves
  *
- * Uses a seeded PRNG (mulberry32) so results are reproducible when seed ≠ 0.
+ * Uses a seeded PRNG (mulberry32) so results are reproducible when seed != 0.
  */
 
 import {
@@ -18,12 +18,32 @@ import {
   InputData,
   ConflictDetail,
   Teacher,
+  Timeslot,
+  Subject,
+  Room,
+  ClassGroup,
 } from './types';
 
-// ── Seeded PRNG (mulberry32) ──────────────────────────────────────────────────
-// Returns a PRNG function that produces values in [0, 1).
-// When seed === 0 we fall back to Math.random for truly random runs.
+// ── Lookup Maps ──────────────────────────────────────────────────────────────
+export interface LookupMaps {
+  timeslots: Map<string, Timeslot>;
+  subjects: Map<string, Subject>;
+  rooms: Map<string, Room>;
+  teachers: Map<string, Teacher>;
+  classes: Map<string, ClassGroup>;
+}
 
+export function buildLookups(inputData: InputData): LookupMaps {
+  return {
+    timeslots: new Map(inputData.timeslots.map(t => [t.id, t])),
+    subjects: new Map(inputData.subjects.map(t => [t.id, t])),
+    rooms: new Map(inputData.rooms.map(t => [t.id, t])),
+    teachers: new Map(inputData.teachers.map(t => [t.id, t])),
+    classes: new Map(inputData.classes.map(t => [t.id, t])),
+  };
+}
+
+// ── Seeded PRNG (mulberry32) ──────────────────────────────────────────────────
 function makePRNG(seed: number): () => number {
   if (seed === 0) return Math.random.bind(Math);
   let s = seed >>> 0;
@@ -35,26 +55,22 @@ function makePRNG(seed: number): () => number {
   };
 }
 
-// Module-level random function, reset before each run.
 let rng: () => number = Math.random;
 
 function randInt(max: number) { return Math.floor(rng() * max); }
 function randElement<T>(arr: T[]): T { return arr[randInt(arr.length)]; }
 
 // ── Teacher helper ────────────────────────────────────────────────────────────
-
 function findTeacherForSubject(subjectId: string, teachers: Teacher[]): Teacher {
   const eligible = teachers.filter(t => t.subjects.includes(subjectId));
   return eligible.length > 0 ? randElement(eligible) : randElement(teachers);
 }
 
 // ── Chromosome factory ────────────────────────────────────────────────────────
-
 function createChromosome(inputData: InputData): Chromosome {
   const { classes, subjects, teachers, rooms, timeslots } = inputData;
   const genes: Chromosome = [];
   for (const cls of classes) {
-    // Use class-specific allowed rooms/timeslots if defined, else fall back to all
     const eligibleRooms = cls.allowedRooms?.length
       ? rooms.filter(r => cls.allowedRooms.includes(r.id))
       : rooms;
@@ -84,7 +100,6 @@ export function initializePopulation(size: number, inputData: InputData): Chromo
 }
 
 // ── Fitness function (penalty-based) ─────────────────────────────────────────
-
 export interface FitnessBreakdown {
   teacherConflicts: number;
   roomConflicts: number;
@@ -95,7 +110,7 @@ export interface FitnessBreakdown {
   conflictDetails: ConflictDetail[];
 }
 
-export function evaluateFitness(chromosome: Chromosome, inputData: InputData): FitnessBreakdown {
+export function evaluateFitness(chromosome: Chromosome, inputData: InputData, maps: LookupMaps): FitnessBreakdown {
   let penalty = 0;
   let teacherConflicts = 0;
   let roomConflicts = 0;
@@ -103,7 +118,6 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
   let scheduleGaps = 0;
   const conflictDetails: ConflictDetail[] = [];
 
-  // Group by timeslot
   const byTimeslot = new Map<string, Gene[]>();
   for (const g of chromosome) {
     const arr = byTimeslot.get(g.timeslotId) ?? [];
@@ -112,7 +126,6 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
   }
 
   for (const genes of byTimeslot.values()) {
-    // Teacher conflicts
     const tMap = new Map<string, Gene[]>();
     for (const g of genes) { const a = tMap.get(g.teacherId) ?? []; a.push(g); tMap.set(g.teacherId, a); }
     for (const tGenes of tMap.values()) {
@@ -122,7 +135,7 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
         conflictDetails.push({ type: 'teacher', description: `Teacher double-booked (×${tGenes.length})`, genes: tGenes });
       }
     }
-    // Room conflicts
+
     const rMap = new Map<string, Gene[]>();
     for (const g of genes) { const a = rMap.get(g.roomId) ?? []; a.push(g); rMap.set(g.roomId, a); }
     for (const rGenes of rMap.values()) {
@@ -132,7 +145,7 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
         conflictDetails.push({ type: 'room', description: `Room double-booked (×${rGenes.length})`, genes: rGenes });
       }
     }
-    // Class double-booking
+
     const cMap = new Map<string, Gene[]>();
     for (const g of genes) { const a = cMap.get(g.classId) ?? []; a.push(g); cMap.set(g.classId, a); }
     for (const cGenes of cMap.values()) {
@@ -143,10 +156,9 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
     }
   }
 
-  // Subject repetition per day per class
   const classDayGenes = new Map<string, Map<string, Gene[]>>();
   for (const g of chromosome) {
-    const ts = inputData.timeslots.find(t => t.id === g.timeslotId);
+    const ts = maps.timeslots.get(g.timeslotId);
     if (!ts) continue;
     const key = g.classId;
     if (!classDayGenes.has(key)) classDayGenes.set(key, new Map());
@@ -168,7 +180,7 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
           const e = subGenes.length - 2; subjectRepetitions += e; penalty += e * 5;
           conflictDetails.push({ 
             type: 'subject-repeat', 
-            description: `Subject ${s} repeats >2 times on ${day}`, 
+            description: `Subject ${maps.subjects.get(s)?.name || s} repeats >2 times on ${day}`, 
             genes: subGenes 
           });
         }
@@ -176,12 +188,11 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
     }
   }
 
-  // Schedule gaps per class per day
   for (const cls of inputData.classes) {
     const dm = new Map<string, Gene[]>();
     for (const g of chromosome) {
       if (g.classId !== cls.id) continue;
-      const ts = inputData.timeslots.find(t => t.id === g.timeslotId);
+      const ts = maps.timeslots.get(g.timeslotId);
       if (!ts) continue;
       const arr = dm.get(ts.day) ?? [];
       arr.push(g);
@@ -189,7 +200,7 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
     }
     for (const [day, dayGenes] of dm.entries()) {
       const periods = dayGenes
-        .map(g => inputData.timeslots.find(t => t.id === g.timeslotId)?.period ?? -1)
+        .map(g => maps.timeslots.get(g.timeslotId)?.period ?? -1)
         .filter(p => p !== -1)
         .sort((a, b) => a - b);
         
@@ -210,9 +221,6 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
     }
   }
 
-  // Dynamic base score: scales with chromosome length so fitness is always meaningful
-  // regardless of how many classes/subjects are in the dataset.
-  // With 600 genes, baseScore = 12000, giving room to show real improvement.
   const baseScore = Math.max(1000, chromosome.length * 20);
 
   return {
@@ -224,7 +232,6 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData): F
 }
 
 // ── Selection ─────────────────────────────────────────────────────────────────
-
 function tournamentSelect(population: Chromosome[], fitnesses: number[], k: number): Chromosome {
   let best = randInt(population.length);
   for (let i = 1; i < k; i++) {
@@ -235,13 +242,10 @@ function tournamentSelect(population: Chromosome[], fitnesses: number[], k: numb
 }
 
 // ── Crossover ─────────────────────────────────────────────────────────────────
-
 function crossover(p1: Chromosome, p2: Chromosome, type: 'one-point' | 'two-point'): [Chromosome, Chromosome] {
   const len = Math.min(p1.length, p2.length);
   if (len < 3) return [p1.map(g => ({ ...g })), p2.map(g => ({ ...g }))];
 
-  // Align crossover points to class boundaries so we don't rupture a class's internal schedule,
-  // preventing massive schedule gaps and subject repetitions in the offspring.
   const class0Id = p1[0]?.classId;
   let genesPerClass = 0;
   while (genesPerClass < len && p1[genesPerClass].classId === class0Id) {
@@ -250,7 +254,6 @@ function crossover(p1: Chromosome, p2: Chromosome, type: 'one-point' | 'two-poin
   const numClasses = Math.floor(len / genesPerClass);
 
   if (type === 'one-point') {
-    // Split at a class boundary (between 1 and numClasses - 1)
     const ptClass = 1 + randInt(Math.max(1, numClasses - 1));
     const pt = ptClass * genesPerClass;
     
@@ -275,20 +278,14 @@ function crossover(p1: Chromosome, p2: Chromosome, type: 'one-point' | 'two-poin
 }
 
 // ── Mutation ──────────────────────────────────────────────────────────────────
-
-function mutate(chromosome: Chromosome, rate: number, inputData: InputData): Chromosome {
-  const classMap = new Map(inputData.classes.map(c => [c.id, c]));
-
-  // The UI rate (e.g., 0.15) is scaled down. 
-  // If we actually mutated 15% of ~500 genes, it's too destructive (75 genes scrambled).
-  // Scaling by 0.1 means 0.15 becomes 1.5% chance per gene (~7 genes mutate), which is perfect.
+function mutate(chromosome: Chromosome, rate: number, inputData: InputData, maps: LookupMaps): Chromosome {
+  const classMap = maps.classes;
   const geneRate = rate * 0.1;
 
-  return chromosome.map(g => {
-    if (rng() >= geneRate) return { ...g };
+  const mutated = chromosome.map(g => {
+    if (rng() >= geneRate) return g;
     const cls = classMap.get(g.classId);
 
-    // Respect class constraints during mutation
     const eligibleRooms = cls?.allowedRooms?.length
       ? inputData.rooms.filter(r => cls.allowedRooms.includes(r.id))
       : inputData.rooms;
@@ -301,11 +298,37 @@ function mutate(chromosome: Chromosome, rate: number, inputData: InputData): Chr
     if (choice === 1) return { ...g, roomId: randElement(eligibleRooms).id };
     return { ...g, teacherId: findTeacherForSubject(g.subjectId, inputData.teachers).id };
   });
+
+  // Swap Mutation
+  if (rng() < (rate * 0.5) && mutated.length >= 2) {
+    const byClass = new Map<string, number[]>();
+    for (let i = 0; i < mutated.length; i++) {
+        const c = mutated[i].classId;
+        const arr = byClass.get(c) ?? [];
+        arr.push(i);
+        byClass.set(c, arr);
+    }
+    const validClasses = Array.from(byClass.values()).filter(arr => arr.length >= 2);
+    if (validClasses.length > 0) {
+        const targetClassIdxs = randElement(validClasses);
+        const i1 = randElement(targetClassIdxs);
+        let i2 = randElement(targetClassIdxs);
+        let tries = 0;
+        while(i1 === i2 && tries < 5) { i2 = randElement(targetClassIdxs); tries++; }
+        if (i1 !== i2) {
+            const g1 = mutated[i1];
+            const g2 = mutated[i2];
+            mutated[i1] = { ...g1, timeslotId: g2.timeslotId };
+            mutated[i2] = { ...g2, timeslotId: g1.timeslotId };
+        }
+    }
+  }
+
+  return mutated;
 }
 
 // ── Metrics snapshot ──────────────────────────────────────────────────────────
-
-function snapshot(gen: number, population: Chromosome[], fitnesses: FitnessBreakdown[]): GenerationMetrics {
+function snapshot(gen: number, population: Chromosome[], fitnesses: FitnessBreakdown[], mutationRate: number): GenerationMetrics {
   const vals = fitnesses.map(f => f.fitness);
   const best = Math.max(...vals);
   const bestf = fitnesses[vals.indexOf(best)];
@@ -315,24 +338,34 @@ function snapshot(gen: number, population: Chromosome[], fitnesses: FitnessBreak
     averageFitness: vals.reduce((a, b) => a + b, 0) / vals.length,
     worstFitness: Math.min(...vals),
     conflicts: bestf.teacherConflicts + bestf.roomConflicts + bestf.subjectRepetitions + bestf.scheduleGaps,
+    mutationRate,
   };
 }
 
 // ── Yield helper ──────────────────────────────────────────────────────────────
-
 const yieldToBrowser = () => new Promise<void>(r => setTimeout(r, 0));
 
-// ── Synchronous run (for unit tests) ─────────────────────────────────────────
+// ── Adaptive Tracker ────────────────────────────────────────────────────────
+let _prevBestFitness = -1;
+let _stagnationCount = 0;
+let _currentAdaptiveMutation = 0.1;
 
+// ── Synchronous run (for unit tests) ─────────────────────────────────────────
 export function runGeneticAlgorithm(
   config: GAConfig,
   inputData: InputData,
-  onProgress?: (m: GenerationMetrics, best: Chromosome) => void
+  onProgress?: (m: GenerationMetrics, best: Chromosome, bestConflicts: ConflictDetail[]) => void
 ): GAResult {
   rng = makePRNG(config.seed);
   const startTime = performance.now();
+  const maps = buildLookups(inputData);
+
+  _prevBestFitness = -1;
+  _stagnationCount = 0;
+  _currentAdaptiveMutation = config.mutationRate;
+
   let pop = initializePopulation(config.populationSize, inputData);
-  let fitnesses = pop.map(c => evaluateFitness(c, inputData));
+  let fitnesses = pop.map(c => evaluateFitness(c, inputData, maps));
   const metrics: GenerationMetrics[] = [];
 
   const initBestIdx = fitnesses.reduce((bi, f, i) => f.fitness > fitnesses[bi].fitness ? i : bi, 0);
@@ -341,27 +374,38 @@ export function runGeneticAlgorithm(
   const initialConflicts = ib.teacherConflicts + ib.roomConflicts + ib.subjectRepetitions + ib.scheduleGaps;
 
   for (let gen = 0; gen < config.generations; gen++) {
-    const m = snapshot(gen, pop, fitnesses);
+    const currentMutation = config.algorithmType === 'adaptive-mutation' ? _currentAdaptiveMutation : config.mutationRate;
+    const m = snapshot(gen, pop, fitnesses, currentMutation);
     metrics.push(m);
-    if (onProgress) onProgress(m, pop[fitnesses.map(f => f.fitness).indexOf(m.bestFitness)]);
-    [pop, fitnesses] = evolve(pop, fitnesses, config, inputData, m);
+
+    if (onProgress && (gen % 2 === 0 || gen === config.generations - 1)) {
+      const bestIdx = fitnesses.map(f => f.fitness).indexOf(m.bestFitness);
+      onProgress(m, pop[bestIdx], fitnesses[bestIdx].conflictDetails);
+    }
+    
+    [pop, fitnesses] = evolve(pop, fitnesses, config, inputData, maps, m);
   }
 
   return buildResult(pop, fitnesses, metrics, initialFitness, initialConflicts, startTime);
 }
 
 // ── Async run (for UI — yields between generations) ───────────────────────────
-
 export async function runGeneticAlgorithmAsync(
   config: GAConfig,
   inputData: InputData,
-  onProgress: (m: GenerationMetrics, best: Chromosome) => void,
+  onProgress: (m: GenerationMetrics, best: Chromosome, bestConflicts: ConflictDetail[]) => void,
   cancelledRef: { current: boolean }
 ): Promise<GAResult> {
   rng = makePRNG(config.seed);
   const startTime = performance.now();
+  const maps = buildLookups(inputData);
+
+  _prevBestFitness = -1;
+  _stagnationCount = 0;
+  _currentAdaptiveMutation = config.mutationRate;
+
   let pop = initializePopulation(config.populationSize, inputData);
-  let fitnesses = pop.map(c => evaluateFitness(c, inputData));
+  let fitnesses = pop.map(c => evaluateFitness(c, inputData, maps));
   const metrics: GenerationMetrics[] = [];
 
   const initBestIdx = fitnesses.reduce((bi, f, i) => f.fitness > fitnesses[bi].fitness ? i : bi, 0);
@@ -372,87 +416,86 @@ export async function runGeneticAlgorithmAsync(
   for (let gen = 0; gen < config.generations; gen++) {
     if (cancelledRef.current) break;
 
-    const m = snapshot(gen, pop, fitnesses);
+    const currentMutation = config.algorithmType === 'adaptive-mutation' ? _currentAdaptiveMutation : config.mutationRate;
+    const m = snapshot(gen, pop, fitnesses, currentMutation);
     metrics.push(m);
-    onProgress(m, pop[fitnesses.map(f => f.fitness).indexOf(m.bestFitness)]);
 
-    await yieldToBrowser(); // keep UI alive
+    if (gen % 2 === 0 || gen === config.generations - 1) {
+      const bestIdx = fitnesses.map(f => f.fitness).indexOf(m.bestFitness);
+      onProgress(m, pop[bestIdx], fitnesses[bestIdx].conflictDetails);
+      await yieldToBrowser();
+    }
 
-    [pop, fitnesses] = evolve(pop, fitnesses, config, inputData, m);
+    [pop, fitnesses] = evolve(pop, fitnesses, config, inputData, maps, m);
   }
 
   return buildResult(pop, fitnesses, metrics, initialFitness, initialConflicts, startTime);
 }
 
 // ── Core evolution step (dispatches to algorithm variant) ────────────────────
-
 function evolve(
   pop: Chromosome[],
   fitnesses: FitnessBreakdown[],
   config: GAConfig,
   inputData: InputData,
+  maps: LookupMaps,
   currentMetrics: GenerationMetrics,
 ): [Chromosome[], FitnessBreakdown[]] {
   switch (config.algorithmType) {
     case 'steady-state':
-      return evolveSteadyState(pop, fitnesses, config, inputData);
+      return evolveSteadyState(pop, fitnesses, config, inputData, maps);
     case 'adaptive-mutation':
-      return evolveAdaptive(pop, fitnesses, config, inputData, currentMetrics);
+      return evolveAdaptive(pop, fitnesses, config, inputData, maps, currentMetrics);
     default:
-      return evolveStandard(pop, fitnesses, config, inputData);
+      return evolveStandard(pop, fitnesses, config, inputData, maps);
   }
 }
 
 // ── Standard Generational GA ──────────────────────────────────────────────────
-// Full replacement each generation with elitism (best individual survives).
-
 function evolveStandard(
   pop: Chromosome[],
   fitnesses: FitnessBreakdown[],
   config: GAConfig,
   inputData: InputData,
+  maps: LookupMaps,
 ): [Chromosome[], FitnessBreakdown[]] {
   const vals = fitnesses.map(f => f.fitness);
   const bestIdx = vals.indexOf(Math.max(...vals));
-  const next: Chromosome[] = [pop[bestIdx].map(g => ({ ...g }))]; // elitism
+  const next: Chromosome[] = [pop[bestIdx].map(g => ({ ...g }))];
 
   while (next.length < config.populationSize) {
     const p1 = tournamentSelect(pop, vals, config.tournamentSize);
     const p2 = tournamentSelect(pop, vals, config.tournamentSize);
     const [c1, c2] = crossover(p1, p2, config.crossoverType);
-    next.push(mutate(c1, config.mutationRate, inputData));
-    if (next.length < config.populationSize) next.push(mutate(c2, config.mutationRate, inputData));
+    next.push(mutate(c1, config.mutationRate, inputData, maps));
+    if (next.length < config.populationSize) next.push(mutate(c2, config.mutationRate, inputData, maps));
   }
 
-  return [next, next.map(c => evaluateFitness(c, inputData))];
+  return [next, next.map(c => evaluateFitness(c, inputData, maps))];
 }
 
 // ── Steady-State GA ───────────────────────────────────────────────────────────
-// Each generation, produce 2 offspring; replace the 2 worst individuals if offspring are better.
-
 function evolveSteadyState(
   pop: Chromosome[],
   fitnesses: FitnessBreakdown[],
   config: GAConfig,
   inputData: InputData,
+  maps: LookupMaps,
 ): [Chromosome[], FitnessBreakdown[]] {
   const newPop = pop.map(c => c.map(g => ({ ...g })));
   const newFit = [...fitnesses];
   const vals = fitnesses.map(f => f.fitness);
 
-  // Replaces worst individuals each generation. We do 50% of the population
-  // so it has enough evaluations per generation to keep pace with Standard GA.
   const replacements = Math.max(2, Math.floor(config.populationSize * 0.5));
   for (let r = 0; r < replacements; r += 2) {
     const p1 = tournamentSelect(pop, vals, config.tournamentSize);
     const p2 = tournamentSelect(pop, vals, config.tournamentSize);
     const [c1, c2] = crossover(p1, p2, config.crossoverType);
-    const off1 = mutate(c1, config.mutationRate, inputData);
-    const off2 = mutate(c2, config.mutationRate, inputData);
-    const f1 = evaluateFitness(off1, inputData);
-    const f2 = evaluateFitness(off2, inputData);
+    const off1 = mutate(c1, config.mutationRate, inputData, maps);
+    const off2 = mutate(c2, config.mutationRate, inputData, maps);
+    const f1 = evaluateFitness(off1, inputData, maps);
+    const f2 = evaluateFitness(off2, inputData, maps);
 
-    // Find worst slot to replace
     const currentVals = newFit.map(f => f.fitness);
     const worst1 = currentVals.indexOf(Math.min(...currentVals));
     if (f1.fitness > newFit[worst1].fitness) {
@@ -471,46 +514,34 @@ function evolveSteadyState(
 }
 
 // ── Adaptive Mutation GA ──────────────────────────────────────────────────────
-// Mutation rate increases when population stagnates, decreases when improving.
-// Starts at config.mutationRate, bounded in [0.01, 0.5].
-
-let _prevBestFitness = -1;
-let _stagnationCount = 0;
-let _currentAdaptiveMutation = 0.1;
-
 function evolveAdaptive(
   pop: Chromosome[],
   fitnesses: FitnessBreakdown[],
   config: GAConfig,
   inputData: InputData,
+  maps: LookupMaps,
   metrics: GenerationMetrics,
 ): [Chromosome[], FitnessBreakdown[]] {
-  // Initialize on first call (gen 0)
   if (metrics.generation === 0) {
     _prevBestFitness = metrics.bestFitness;
     _stagnationCount = 0;
     _currentAdaptiveMutation = config.mutationRate;
   }
 
-  // Adapt mutation rate using Pulse Mutation to prevent Death Spirals
   const bestFit = metrics.bestFitness;
   if (bestFit > _prevBestFitness) {
     _stagnationCount = 0;
     _prevBestFitness = bestFit;
-    // Cool down gracefully as we find better solutions
     _currentAdaptiveMutation = Math.max(0.02, _currentAdaptiveMutation * 0.95); 
   } else {
     _stagnationCount++;
-    // Every 5 stagnant generations, send a heat pulse to shock it out of the local trap
     if (_stagnationCount % 5 === 0) {
       _currentAdaptiveMutation = Math.min(0.3, _currentAdaptiveMutation * 1.5);
     } else {
-      // Otherwise, keep cooling down so the offspring actually survive the shock
       _currentAdaptiveMutation = Math.max(0.02, _currentAdaptiveMutation * 0.95);
     }
   }
 
-  // Run standard generational cycle with adapted rate
   const vals = fitnesses.map(f => f.fitness);
   const bestIdx = vals.indexOf(Math.max(...vals));
   const next: Chromosome[] = [pop[bestIdx].map(g => ({ ...g }))];
@@ -519,15 +550,14 @@ function evolveAdaptive(
     const p1 = tournamentSelect(pop, vals, config.tournamentSize);
     const p2 = tournamentSelect(pop, vals, config.tournamentSize);
     const [c1, c2] = crossover(p1, p2, config.crossoverType);
-    next.push(mutate(c1, _currentAdaptiveMutation, inputData));
-    if (next.length < config.populationSize) next.push(mutate(c2, _currentAdaptiveMutation, inputData));
+    next.push(mutate(c1, _currentAdaptiveMutation, inputData, maps));
+    if (next.length < config.populationSize) next.push(mutate(c2, _currentAdaptiveMutation, inputData, maps));
   }
 
-  return [next, next.map(c => evaluateFitness(c, inputData))];
+  return [next, next.map(c => evaluateFitness(c, inputData, maps))];
 }
 
 // ── Build final result ────────────────────────────────────────────────────────
-
 function buildResult(
   pop: Chromosome[],
   fitnesses: FitnessBreakdown[],

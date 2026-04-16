@@ -10,9 +10,25 @@ export default function ProgressIndicator() {
     ? (currentGeneration / config.generations) * 100
     : 0;
 
-  const latestConflicts = generationMetrics.length > 0
-    ? generationMetrics[generationMetrics.length - 1].conflicts
-    : 0;
+  const currentMetrics = generationMetrics[generationMetrics.length - 1];
+  const latestConflicts = currentMetrics ? currentMetrics.conflicts : 0;
+  const initialConflicts = generationMetrics[0]?.conflicts || latestConflicts;
+  
+  // Improvement logic
+  const diff = initialConflicts - latestConflicts;
+  const improvementNode = diff > 0 
+    ? <span className="text-sm font-semibold text-accent ml-2">({initialConflicts} &rarr; {latestConflicts} &darr;)</span> 
+    : null;
+
+  // Status Logic
+  let status = "Initializing";
+  if (isRunning) {
+    if (progress < 30) status = "Exploring";
+    else if (progress < 70) status = "Optimizing";
+    else status = "Converging";
+  } else {
+    status = "Complete";
+  }
 
   return (
     <motion.div
@@ -21,9 +37,14 @@ export default function ProgressIndicator() {
       transition={{ duration: 0.4 }}
       className="rounded-card bg-white p-6 shadow-card"
     >
-      <h2 className="mb-4 font-heading text-lg font-semibold text-primary">
-        {isRunning ? '🔄 Running...' : '✅ Complete'}
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-heading text-lg font-semibold text-primary">
+          {isRunning ? '🔄 Running...' : '✅ Complete'}
+        </h2>
+        <span className="bg-primary/10 text-primary-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+          Status: {status}
+        </span>
+      </div>
 
       {/* Progress bar */}
       <div className="mb-4 overflow-hidden rounded-full bg-primary-50">
@@ -47,11 +68,13 @@ export default function ProgressIndicator() {
           value={currentBestFitness.toFixed(0)}
           color="text-accent"
         />
-        <StatCard
-          label="Conflicts"
-          value={latestConflicts.toString()}
-          color={latestConflicts > 0 ? 'text-warning' : 'text-accent'}
-        />
+        <div className="rounded-xl bg-primary-50/50 p-3 text-center">
+          <p className="text-xs font-medium text-primary-400">Conflicts</p>
+          <div className="mt-1 flex items-center justify-center">
+            <p className={`font-heading text-xl font-bold ${latestConflicts > 0 ? 'text-warning' : 'text-accent'}`}>{latestConflicts}</p>
+            {improvementNode}
+          </div>
+        </div>
       </div>
     </motion.div>
   );

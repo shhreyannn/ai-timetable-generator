@@ -23,9 +23,11 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
     <div className="mt-6 space-y-6">
       {/* Fitness Graph */}
       <div className="rounded-xl border border-primary-100 bg-white p-4">
-        <h3 className="mb-4 font-heading text-sm font-semibold text-primary">
-          📈 Fitness Progression (Generations vs Score)
-        </h3>
+        <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-heading text-sm font-semibold text-primary">
+              📈 Fitness Progression (Generations vs Score)
+            </h3>
+        </div>
         <div className="h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={metrics} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
@@ -44,10 +46,19 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
                 minTickGap={20}
               />
               <YAxis
+                yAxisId="left"
                 domain={['auto', 'auto']}
                 tick={{ fontSize: 11, fill: '#94a3b8' }}
                 tickLine={false}
                 axisLine={false}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tick={{ fontSize: 11, fill: '#f59e0b' }}
+                tickLine={false}
+                axisLine={false}
+                domain={[0, 0.4]}
               />
               <Tooltip
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
@@ -56,6 +67,7 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
               />
               <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
               <Area
+                yAxisId="left"
                 type="monotone"
                 dataKey="bestFitness"
                 name="Best Fitness"
@@ -66,11 +78,24 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
                 isAnimationActive={false}
               />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="averageFitness"
                 name="Avg Fitness"
                 stroke="#94a3b8"
                 strokeWidth={2}
+                dot={false}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                yAxisId="right"
+                type="stepAfter"
+                dataKey="mutationRate"
+                name="Mutation Rate"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                strokeDasharray="4 4"
                 dot={false}
                 activeDot={false}
                 isAnimationActive={false}

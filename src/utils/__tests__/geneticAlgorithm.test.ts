@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { evaluateFitness, initializePopulation, runGeneticAlgorithm } from '../geneticAlgorithm';
+import { evaluateFitness, initializePopulation, runGeneticAlgorithm, buildLookups } from '../geneticAlgorithm';
 import { getSampleData } from '../sampleData';
 import type { Chromosome, Gene, GAConfig, InputData } from '../types';
 
@@ -59,7 +59,8 @@ describe('Fitness Function', () => {
       { classId: 'cls2', subjectId: 'sub2', teacherId: 'tch2', roomId: 'room2', timeslotId: 'mon_p1' },
     ];
 
-    const result = evaluateFitness(conflictFree, input);
+    const maps = buildLookups(input);
+    const result = evaluateFitness(conflictFree, input, maps);
     expect(result.teacherConflicts).toBe(0);
     expect(result.roomConflicts).toBe(0);
     expect(result.fitness).toBe(1000);
@@ -73,7 +74,8 @@ describe('Fitness Function', () => {
       { classId: 'cls2', subjectId: 'sub1', teacherId: 'tch1', roomId: 'room2', timeslotId: 'mon_p1' },
     ];
 
-    const result = evaluateFitness(withTeacherConflict, input);
+    const maps = buildLookups(input);
+    const result = evaluateFitness(withTeacherConflict, input, maps);
     expect(result.teacherConflicts).toBeGreaterThan(0);
     expect(result.totalPenalty).toBeGreaterThanOrEqual(10);
   });
@@ -86,7 +88,8 @@ describe('Fitness Function', () => {
       { classId: 'cls2', subjectId: 'sub2', teacherId: 'tch2', roomId: 'room1', timeslotId: 'mon_p1' },
     ];
 
-    const result = evaluateFitness(withRoomConflict, input);
+    const maps = buildLookups(input);
+    const result = evaluateFitness(withRoomConflict, input, maps);
     expect(result.roomConflicts).toBeGreaterThan(0);
     expect(result.totalPenalty).toBeGreaterThanOrEqual(10);
   });
@@ -111,7 +114,8 @@ describe('Fitness Function', () => {
     ];
 
     // For this test, the first case has no penalty since max 2 per day
-    const result = evaluateFitness(withRepetition, input);
+    const maps = buildLookups(input);
+    const result = evaluateFitness(withRepetition, input, maps);
     // Monday has 2 Math (sub1), Tuesday has 1 - no excess
     expect(result.subjectRepetitions).toBe(0);
   });
@@ -133,7 +137,8 @@ describe('Fitness Function', () => {
       { classId: 'cls1', subjectId: 'sub2', teacherId: 'tch2', roomId: 'room2', timeslotId: 'mon_p4' },
     ];
 
-    const result = evaluateFitness(withGap, input);
+    const maps = buildLookups(input);
+    const result = evaluateFitness(withGap, input, maps);
     expect(result.scheduleGaps).toBeGreaterThan(0);
     expect(result.totalPenalty).toBeGreaterThanOrEqual(2);
   });

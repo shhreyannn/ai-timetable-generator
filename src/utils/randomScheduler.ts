@@ -5,7 +5,7 @@
  */
 
 import { InputData, Chromosome, RandomResult, Gene } from './types';
-import { evaluateFitness } from './geneticAlgorithm';
+import { evaluateFitness, buildLookups } from './geneticAlgorithm';
 
 function randElement<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -46,7 +46,8 @@ export function generateRandomTimetable(inputData: InputData): RandomResult {
     }
   }
 
-  const breakdown = evaluateFitness(chromosome, inputData);
+  const maps = buildLookups(inputData);
+  const breakdown = evaluateFitness(chromosome, inputData, maps);
   const totalConflicts = breakdown.teacherConflicts +
     breakdown.roomConflicts +
     breakdown.subjectRepetitions +

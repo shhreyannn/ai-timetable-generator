@@ -65,6 +65,7 @@ export interface GenerationMetrics {
   averageFitness: number;
   worstFitness: number;
   conflicts: number;
+  mutationRate?: number;
 }
 
 export interface ConflictDetail {
@@ -113,6 +114,7 @@ export interface GAWorkerProgress {
   type: 'progress';
   metrics: GenerationMetrics;
   currentBest: Chromosome;
+  currentBestConflicts?: ConflictDetail[];
 }
 
 export interface GAWorkerComplete {

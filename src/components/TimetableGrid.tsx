@@ -1,10 +1,19 @@
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import type { Gene } from '../utils/types';
+import type { Gene, ConflictDetail } from '../utils/types';
 
 export default function TimetableGrid() {
-  const { result, inputData, showConflicts, setShowConflicts, selectedClassId, setSelectedClassId } = useStore();
+  const { 
+    result, 
+    currentBest, 
+    currentBestConflicts, 
+    inputData, 
+    showConflicts, 
+    setShowConflicts, 
+    selectedClassId, 
+    setSelectedClassId 
+  } = useStore();
 
   const days = useMemo(
     () => [...new Set(inputData.timeslots.map(t => t.day))],
@@ -23,12 +32,16 @@ export default function TimetableGrid() {
     return daySlots.map(t => t.period).sort((a, b) => a - b);
   }, [inputData.timeslots, inputData.classes, selectedClassId, days]);
 
+  // Use final result OR live evolving currentBest
+  const activeTimetable = result?.bestTimetable || currentBest;
+  const activeConflicts = result?.conflictDetails || currentBestConflicts;
+
   // Filter genes for selected class
   const classGenes = useMemo(() => {
-    if (!result) return [];
-    if (!selectedClassId) return result.bestTimetable;
-    return result.bestTimetable.filter(g => g.classId === selectedClassId);
-  }, [result, selectedClassId]);
+    if (!activeTimetable) return [];
+    if (!selectedClassId) return activeTimetable;
+    return activeTimetable.filter(g => g.classId === selectedClassId);
+  }, [activeTimetable, selectedClassId]);
 
   // Build grid lookup
   const geneGrid = useMemo(() => {
@@ -43,34 +56,39 @@ export default function TimetableGrid() {
     return grid;
   }, [classGenes, inputData.timeslots]);
 
-  // Find conflicts
-  const conflictSet = useMemo(() => {
-    const conflicts = new Set<string>();
-    if (!showConflicts || !result) return conflicts;
-    for (const detail of result.conflictDetails) {
+  // Find conflicts and map to specific timeslot cells for tooltips (O(1) lookup map)
+  const conflictMap = useMemo(() => {
+    const map = new Map<string, ConflictDetail[]>();
+    if (!showConflicts || !activeConflicts) return map;
+    
+    for (const detail of activeConflicts) {
       for (const gene of detail.genes) {
         if (selectedClassId && gene.classId !== selectedClassId) continue;
         const ts = inputData.timeslots.find(t => t.id === gene.timeslotId);
-        if (ts) conflicts.add(`${ts.day}_${ts.period}`);
+        if (!ts) continue;
+        
+        const key = `${ts.day}_${ts.period}`;
+        const existing = map.get(key) || [];
+        existing.push(detail);
+        map.set(key, existing);
       }
     }
-    return conflicts;
-  }, [result, showConflicts, inputData.timeslots, selectedClassId]);
+    return map;
+  }, [activeConflicts, showConflicts, inputData.timeslots, selectedClassId]);
 
   // Find classes that have conflicts
   const conflictingClasses = useMemo(() => {
     const classIds = new Set<string>();
-    if (!result) return classIds;
-    for (const detail of result.conflictDetails) {
+    if (!activeConflicts) return classIds;
+    for (const detail of activeConflicts) {
       for (const gene of detail.genes) {
         classIds.add(gene.classId);
       }
     }
     return classIds;
-  }, [result]);
+  }, [activeConflicts]);
 
-  // Early return AFTER all hooks
-  if (!result) return null;
+  if (!activeTimetable) return null;
 
   const getTimeslotLabel = (day: string, period: number) => {
     const ts = inputData.timeslots.find(t => t.day === day && t.period === period);
@@ -90,8 +108,14 @@ export default function TimetableGrid() {
       id="timetable-grid"
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-heading text-lg font-semibold text-primary">
-          📅 Generated Timetable
+        <h2 className="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+          📅 Timetable Preview
+          {!result && currentBest && (
+            <span className="flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-accent opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
+            </span>
+          )}
         </h2>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -125,7 +149,7 @@ export default function TimetableGrid() {
       </div>
 
       {/* Grid */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto pb-8">
         <table className="w-full border-collapse">
           <thead>
             <tr>
@@ -143,6 +167,7 @@ export default function TimetableGrid() {
             </tr>
           </thead>
           <tbody>
+            <AnimatePresence>
             {days.map((day, dayIdx) => (
               <tr key={day}>
                 <td className="border-t border-primary-50 bg-primary-50/30 p-2 text-xs font-semibold text-primary-700">
@@ -151,18 +176,15 @@ export default function TimetableGrid() {
                 {periods.map((period, pIdx) => {
                   const key = `${day}_${period}`;
                   const genes = geneGrid.get(key) || [];
-                  const isConflict = conflictSet.has(key);
+                  const cellConflicts = conflictMap.get(key) || [];
+                  const isConflict = cellConflicts.length > 0;
 
                   return (
                     <motion.td
                       key={key}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{
-                        delay: dayIdx * 0.05 + pIdx * 0.03,
-                        duration: 0.3,
-                      }}
-                      className={`border-t border-primary-50 p-1 ${
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className={`border-t border-primary-50 p-1 relative group ${
                         isConflict ? 'bg-warning/10' : ''
                       }`}
                     >
@@ -173,8 +195,9 @@ export default function TimetableGrid() {
                           const room = getRoom(gene.roomId);
 
                           return (
-                            <div
-                              key={gi}
+                            <motion.div
+                              key={`${gi}-${gene.subjectId}-${gene.teacherId}`}
+                              layoutId={`gene-${day}-${period}-${gene.classId}-${gi}`}
                               className={`rounded-lg p-2 text-center transition-all ${
                                 isConflict
                                   ? 'ring-2 ring-warning ring-offset-1'
@@ -188,18 +211,18 @@ export default function TimetableGrid() {
                               }}
                             >
                               <p
-                                className="text-xs font-bold"
+                                className="text-xs font-bold truncate"
                                 style={{ color: subject?.color || '#1F3A5F' }}
                               >
                                 {subject?.name || gene.subjectId}
                               </p>
-                              <p className="mt-0.5 text-[10px] text-gray-500">
+                              <p className="mt-0.5 text-[10px] text-gray-500 truncate">
                                 {teacher?.name || gene.teacherId}
                               </p>
-                              <p className="text-[10px] text-gray-400">
+                              <p className="text-[10px] text-gray-400 truncate">
                                 {room?.name || gene.roomId}
                               </p>
-                            </div>
+                            </motion.div>
                           );
                         })
                       ) : (
@@ -207,11 +230,32 @@ export default function TimetableGrid() {
                           —
                         </div>
                       )}
+                      
+                      {/* Conflict Tooltip */}
+                      {isConflict && (
+                        <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 hidden w-48 group-hover:block pointer-events-none">
+                          <div className="bg-white rounded-lg shadow-xl border border-warning/30 p-3 text-left">
+                            <p className="text-xs font-bold text-warning mb-2 border-b border-warning/20 pb-1">
+                              {cellConflicts.length} Conflict{cellConflicts.length > 1 ? 's' : ''} Found:
+                            </p>
+                            <ul className="space-y-1.5">
+                              {cellConflicts.map((c, idx) => (
+                                <li key={idx} className="text-[10px] text-gray-700 leading-tight flex gap-1">
+                                  <span className="text-warning mt-0.5">•</span>
+                                  <span>{c.description}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 border-[6px] border-transparent border-t-white" />
+                        </div>
+                      )}
                     </motion.td>
                   );
                 })}
               </tr>
             ))}
+            </AnimatePresence>
           </tbody>
         </table>
       </div>
