@@ -132,7 +132,7 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData, ma
       if (tGenes.length > 1 && new Set(tGenes.map(g => g.classId)).size > 1) {
         const c = tGenes.length - 1;
         teacherConflicts += c; penalty += c * 10;
-        conflictDetails.push({ type: 'teacher', description: `Teacher double-booked (×${tGenes.length})`, genes: tGenes });
+        conflictDetails.push({ type: 'teacher', description: `Teacher is double-booked (scheduled to teach ${tGenes.length} different classes at the exact same time)`, genes: tGenes });
       }
     }
 
@@ -142,7 +142,7 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData, ma
       if (rGenes.length > 1 && new Set(rGenes.map(g => g.classId)).size > 1) {
         const c = rGenes.length - 1;
         roomConflicts += c; penalty += c * 10;
-        conflictDetails.push({ type: 'room', description: `Room double-booked (×${rGenes.length})`, genes: rGenes });
+        conflictDetails.push({ type: 'room', description: `Room is double-booked (assigned to ${rGenes.length} different classes at the exact same time)`, genes: rGenes });
       }
     }
 
@@ -151,7 +151,7 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData, ma
     for (const cGenes of cMap.values()) {
       if (cGenes.length > 1) { 
         const c = cGenes.length - 1; teacherConflicts += c; penalty += c * 10;
-        conflictDetails.push({ type: 'class', description: `Class double-booked in same period`, genes: cGenes });
+        conflictDetails.push({ type: 'class', description: `Class group is double-booked (expected to attend ${cGenes.length} different subjects at the exact same time)`, genes: cGenes });
       }
     }
   }
@@ -178,9 +178,10 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData, ma
       for (const [s, subGenes] of freq.entries()) {
         if (subGenes.length > 2) { 
           const e = subGenes.length - 2; subjectRepetitions += e; penalty += e * 5;
+          const subjectName = maps.subjects.get(s)?.name || s;
           conflictDetails.push({ 
             type: 'subject-repeat', 
-            description: `Subject ${maps.subjects.get(s)?.name || s} repeats >2 times on ${day}`, 
+            description: `Student fatigue concern: Subject '${subjectName}' is scheduled too many times (${subGenes.length} periods) on ${day}`, 
             genes: subGenes 
           });
         }
@@ -188,38 +189,8 @@ export function evaluateFitness(chromosome: Chromosome, inputData: InputData, ma
     }
   }
 
-  for (const cls of inputData.classes) {
-    const dm = new Map<string, Gene[]>();
-    for (const g of chromosome) {
-      if (g.classId !== cls.id) continue;
-      const ts = maps.timeslots.get(g.timeslotId);
-      if (!ts) continue;
-      const arr = dm.get(ts.day) ?? [];
-      arr.push(g);
-      dm.set(ts.day, arr);
-    }
-    for (const [day, dayGenes] of dm.entries()) {
-      const periods = dayGenes
-        .map(g => maps.timeslots.get(g.timeslotId)?.period ?? -1)
-        .filter(p => p !== -1)
-        .sort((a, b) => a - b);
-        
-      let hasGap = false;
-      let dayGaps = 0;
-      for (let i = 1; i < periods.length; i++) {
-        const gap = periods[i] - periods[i - 1] - 1;
-        if (gap > 0) { dayGaps += gap; hasGap = true; }
-      }
-      if (hasGap) {
-         scheduleGaps += dayGaps; penalty += dayGaps * 2;
-         conflictDetails.push({
-           type: 'gap',
-           description: `Schedule gap of ${dayGaps} period(s) on ${day}`,
-           genes: dayGenes
-         });
-      }
-    }
-  }
+  // Note: Schedule gap penalty has been disabled by user request.
+  // Gaps are no longer considered conflicts or penalized.
 
   const baseScore = Math.max(1000, chromosome.length * 20);
 
